@@ -41,9 +41,11 @@ export default function ProfilePage() {
         let totalTime = 0, validMatchCount = 0;
         let newMatchId = null;
 
+        // Filter by date and type 2 only
         const todayMatches = matchData.data?.filter(
-          match => match.date >= todayStart && match.type === 2 && match.forfeited === false
-        );  
+          match => match.date >= todayStart && match.type === 2
+        );
+
         if (todayMatches?.length > 0) {
           newMatchId = todayMatches[0].id;
         }
@@ -52,13 +54,19 @@ export default function ProfilePage() {
           const changeData = match.changes?.find(c => c.uuid === uuid);
           const time = match.result?.time;
 
+          // Count wins/losses and netElo regardless of forfeited
           if (changeData && typeof changeData.change === 'number') {
             if (changeData.change > 0) wins++;
             else if (changeData.change < 0) losses++;
             netElo += changeData.change;
 
-            // Only use time from wins
-            if (changeData.change > 0 && typeof time === 'number' && time > 0) {
+            // Count time only for non-forfeited wins
+            if (
+              changeData.change > 0 &&
+              match.forfeited === false &&
+              typeof time === 'number' &&
+              time > 0
+            ) {
               totalTime += time;
               validMatchCount++;
             }
