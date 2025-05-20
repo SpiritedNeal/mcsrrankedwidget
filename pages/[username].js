@@ -42,7 +42,7 @@ export default function ProfilePage() {
         let newMatchId = null;
 
         const todayMatches = matchData.data?.filter(
-          match => match.date >= todayStart && match.type === 2
+          match => match.date >= todayStart && match.type === 2 && match.forfeited === false
         );  
         if (todayMatches?.length > 0) {
           newMatchId = todayMatches[0].id;
