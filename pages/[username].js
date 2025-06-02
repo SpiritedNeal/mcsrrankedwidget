@@ -13,6 +13,7 @@ export default function ProfilePage() {
     avgTime: 'N/A',
   });
   const [latestMatchId, setLatestMatchId] = useState(null);
+  const [hasGreeted, setHasGreeted] = useState(false); // 🔹 prevent repeat greetings
   const overlayRef = useRef();
 
   useEffect(() => {
@@ -45,8 +46,10 @@ export default function ProfilePage() {
           match => match.date >= todayStart && match.type === 2
         );
 
-        // 🟣 Show "Hello!" animation if no matches today (first load only)
-        if (!latestMatchId && todayMatches.length === 0 && overlayRef.current) {
+        // 🟣 "Hello!" animation if no matches today and not already greeted
+        if (!hasGreeted && todayMatches.length === 0 && overlayRef.current) {
+          setHasGreeted(true); // ✅ prevent repeat
+
           overlayRef.current.style.display = 'flex';
           overlayRef.current.style.backgroundColor = 'hotpink';
           overlayRef.current.textContent = 'Hello!';
@@ -94,7 +97,6 @@ export default function ProfilePage() {
           formattedAvgTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        // 🟩 Show actual match result overlay
         if (newMatchId && newMatchId !== latestMatchId && overlayRef.current) {
           const lastChange = todayMatches[0].changes?.find(c => c.uuid === uuid)?.change || 0;
 
@@ -135,7 +137,7 @@ export default function ProfilePage() {
         backgroundColor: '#0a221c',
         fontFamily: 'Minecraft, sans-serif',
         color: 'white',
-        border: '5px solid #00cc66',
+        border: '6px solid #00cc66',
         borderRadius: '10px',
         position: 'absolute',
         top: 0,
