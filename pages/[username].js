@@ -13,7 +13,7 @@ export default function ProfilePage() {
     avgTime: 'N/A',
   });
   const [latestMatchId, setLatestMatchId] = useState(null);
-  const [hasGreeted, setHasGreeted] = useState(false); // 🔹 prevent repeat greetings
+  const [hasGreeted, setHasGreeted] = useState(false);
   const overlayRef = useRef();
 
   useEffect(() => {
@@ -46,9 +46,9 @@ export default function ProfilePage() {
           match => match.date >= todayStart && match.type === 2
         );
 
-        // 🟣 "Hello!" animation if no matches today and not already greeted
-        if (!hasGreeted && todayMatches.length === 0 && overlayRef.current) {
-          setHasGreeted(true); // ✅ prevent repeat
+        // ✅ Show "Hello!" once if no matches today
+        if (!hasGreeted && latestMatchId === null && todayMatches.length === 0 && overlayRef.current) {
+          setHasGreeted(true); // prevent repeats
 
           overlayRef.current.style.display = 'flex';
           overlayRef.current.style.backgroundColor = 'hotpink';
@@ -127,17 +127,17 @@ export default function ProfilePage() {
     fetchData();
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
-  }, [router.isReady, username, latestMatchId]);
+  }, [router.isReady, username, latestMatchId, hasGreeted]);
 
   return (
     <div
       style={{
         width: '300px',
-        height: '160px',
+        height: '200px',
         backgroundColor: '#0a221c',
         fontFamily: 'Minecraft, sans-serif',
         color: 'white',
-        border: '6px solid #00cc66',
+        border: '2px solid #00cc66',
         borderRadius: '10px',
         position: 'absolute',
         top: 0,
