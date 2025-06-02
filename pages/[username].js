@@ -41,10 +41,25 @@ export default function ProfilePage() {
         let totalTime = 0, validMatchCount = 0;
         let newMatchId = null;
 
-        // Filter by date and type 2 only
         const todayMatches = matchData.data?.filter(
           match => match.date >= todayStart && match.type === 2
         );
+
+        // 🟣 Show "Hello!" animation if no matches today (first load only)
+        if (!latestMatchId && todayMatches.length === 0 && overlayRef.current) {
+          overlayRef.current.style.display = 'flex';
+          overlayRef.current.style.backgroundColor = 'hotpink';
+          overlayRef.current.textContent = 'Hello!';
+          overlayRef.current.style.transform = 'translateY(0%)';
+
+          setTimeout(() => {
+            overlayRef.current.style.transform = 'translateY(-100%)';
+            setTimeout(() => {
+              overlayRef.current.textContent = 'Win!';
+              overlayRef.current.style.backgroundColor = 'limegreen';
+            }, 400);
+          }, 2000);
+        }
 
         if (todayMatches?.length > 0) {
           newMatchId = todayMatches[0].id;
@@ -54,13 +69,11 @@ export default function ProfilePage() {
           const changeData = match.changes?.find(c => c.uuid === uuid);
           const time = match.result?.time;
 
-          // Count wins/losses and netElo regardless of forfeited
           if (changeData && typeof changeData.change === 'number') {
             if (changeData.change > 0) wins++;
             else if (changeData.change < 0) losses++;
             netElo += changeData.change;
 
-            // Count time only for non-forfeited wins
             if (
               changeData.change > 0 &&
               match.forfeited === false &&
@@ -73,7 +86,6 @@ export default function ProfilePage() {
           }
         });
 
-        // Format Avg Time
         let formattedAvgTime = "N/A";
         if (validMatchCount > 0) {
           const avgTimeSec = Math.round(totalTime / validMatchCount / 1000);
@@ -82,17 +94,23 @@ export default function ProfilePage() {
           formattedAvgTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
 
-        // Animate on new match
+        // 🟩 Show actual match result overlay
         if (newMatchId && newMatchId !== latestMatchId && overlayRef.current) {
           const lastChange = todayMatches[0].changes?.find(c => c.uuid === uuid)?.change || 0;
+
+          overlayRef.current.style.display = 'flex';
           overlayRef.current.style.backgroundColor =
             lastChange > 0 ? 'limegreen' : lastChange < 0 ? 'red' : 'gray';
           overlayRef.current.textContent =
             lastChange > 0 ? 'Win!' : lastChange < 0 ? 'Loss :(' : 'Draw';
-          overlayRef.current.style.top = '0';
+          overlayRef.current.style.transform = 'translateY(0%)';
 
           setTimeout(() => {
-            overlayRef.current.style.top = '-100%';
+            overlayRef.current.style.transform = 'translateY(-100%)';
+            setTimeout(() => {
+              overlayRef.current.textContent = 'Win!';
+              overlayRef.current.style.backgroundColor = 'limegreen';
+            }, 400);
           }, 2000);
 
           setLatestMatchId(newMatchId);
@@ -113,26 +131,44 @@ export default function ProfilePage() {
     <div
       style={{
         width: '300px',
-        height: '200px',
-        backgroundColor: '#102C30',
-        color: 'limegreen',
+        height: '160px',
+        backgroundColor: '#0a221c',
         fontFamily: 'Minecraft, sans-serif',
+        color: 'white',
+        border: '5px solid #00cc66',
+        borderRadius: '10px',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        padding: '10px',
+        boxSizing: 'border-box',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
+        justifyContent: 'center'
       }}
     >
       <div id="overlay" ref={overlayRef}></div>
-      <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-        <img src={`/${stats.logo}`} alt="logo" width="64" height="64" />
-        <div style={{ textAlign: 'left' }}>
-          <p>Wins:{stats.wins}</p>
-          <p style={{ color: 'red' }}>Loss:{stats.losses}</p>
-          <p>Elo:{stats.elo}</p>
-          <p>Net Elo:{stats.netElo}</p>
-          <p>Avg Time:{stats.avgTime}</p>
-        </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+        <img src={`/${stats.logo}`} alt="logo" width="48" height="48" style={{ marginRight: '10px' }} />
+        <div style={{ fontSize: '14px', color: '#99ffcc' }}><strong>Elo:</strong> {stats.elo}</div>
+      </div>
+
+      <div
+        style={{
+          backgroundColor: '#000000',
+          padding: '8px',
+          borderRadius: '8px',
+          width: '100%',
+          fontSize: '12px',
+          lineHeight: '1.4',
+        }}
+      >
+        <div><strong style={{ color: '#00ff80' }}>✅ Wins:</strong> {stats.wins}</div>
+        <div><strong style={{ color: 'red' }}>❌ Losses:</strong> {stats.losses}</div>
+        <div><strong style={{ color: '#99ffcc' }}>🔁 Net Elo:</strong> {stats.netElo >= 0 ? '+' : ''}{stats.netElo}</div>
+        <div><strong style={{ color: '#33ff99' }}>⏱ Avg Time:</strong> {stats.avgTime}</div>
       </div>
     </div>
   );
