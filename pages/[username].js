@@ -133,11 +133,11 @@ export default function ProfilePage() {
     <div
       style={{
         width: '300px',
-        height: '200px',
+        height: '160px',
         backgroundColor: '#0a221c',
         fontFamily: 'Minecraft, sans-serif',
         color: 'white',
-        border: '2px solid #00cc66',
+        border: '6px solid #00cc66',
         borderRadius: '10px',
         position: 'absolute',
         top: 0,
