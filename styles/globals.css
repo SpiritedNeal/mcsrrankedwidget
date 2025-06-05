@@ -1,3 +1,18 @@
+@font-face {
+  font-family: 'Minecraft';
+  src: url('/fonts/MinecraftBold-nMK1.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: 'Minecraft', sans-serif;
+}
+
 #overlay {
   position: absolute;
   top: 0;
