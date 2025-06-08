@@ -35,20 +35,25 @@ export default function ProfilePage() {
 
         const matchRes = await fetch(`https://api.mcsrranked.com/users/${username}/matches?MatchType=1`);
         const matchData = await matchRes.json();
-        const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime() / 1000;
+
+        // ✅ Local start and end of day in milliseconds
+        const localMidnight = new Date();
+        localMidnight.setHours(0, 0, 0, 0); // 00:00:00 local
+        const startOfDay = Math.floor(localMidnight.getTime() / 1000);
+        const endOfDay = startOfDay + 86400 - 1;
+
 
         let wins = 0, losses = 0, netElo = 0;
         let totalTime = 0, validMatchCount = 0;
         let newMatchId = null;
 
         const todayMatches = matchData.data?.filter(
-          match => match.date >= todayStart && match.type === 2
+          match => match.date >= startOfDay && match.date <= endOfDay && match.type === 2
         );
 
-        // ✅ Show "Hello!" once if no matches today
+        // "Hello!" greeting once per load if no matches today
         if (!hasGreeted && latestMatchId === null && todayMatches.length === 0 && overlayRef.current) {
-          setHasGreeted(true); // prevent repeats
+          setHasGreeted(true);
 
           overlayRef.current.style.display = 'flex';
           overlayRef.current.style.backgroundColor = 'hotpink';
@@ -137,7 +142,7 @@ export default function ProfilePage() {
         backgroundColor: '#0a221c',
         fontFamily: 'Minecraft, sans-serif',
         color: 'white',
-        border: '6px solid #00cc66',
+        border: '5px solid #00cc66',
         borderRadius: '10px',
         position: 'absolute',
         top: 0,
