@@ -36,12 +36,11 @@ export default function ProfilePage() {
         const matchRes = await fetch(`https://api.mcsrranked.com/users/${username}/matches?MatchType=1`);
         const matchData = await matchRes.json();
 
-        // ✅ Local start and end of day in milliseconds
+        // ✅ Local start and end of day (in seconds)
         const localMidnight = new Date();
-        localMidnight.setHours(0, 0, 0, 0); // 00:00:00 local
+        localMidnight.setHours(0, 0, 0, 0);
         const startOfDay = Math.floor(localMidnight.getTime() / 1000);
         const endOfDay = startOfDay + 86400 - 1;
-
 
         let wins = 0, losses = 0, netElo = 0;
         let totalTime = 0, validMatchCount = 0;
@@ -51,7 +50,7 @@ export default function ProfilePage() {
           match => match.date >= startOfDay && match.date <= endOfDay && match.type === 2
         );
 
-        // "Hello!" greeting once per load if no matches today
+        // ✅ "Hello!" animation once if no matches today
         if (!hasGreeted && latestMatchId === null && todayMatches.length === 0 && overlayRef.current) {
           setHasGreeted(true);
 
@@ -74,23 +73,28 @@ export default function ProfilePage() {
         }
 
         todayMatches?.forEach(match => {
+          const winnerUUID = match.result?.uuid;
           const changeData = match.changes?.find(c => c.uuid === uuid);
           const time = match.result?.time;
 
-          if (changeData && typeof changeData.change === 'number') {
-            if (changeData.change > 0) wins++;
-            else if (changeData.change < 0) losses++;
-            netElo += changeData.change;
+          // Count Wins/Losses based on match result UUID
+          if (winnerUUID === uuid) {
+            wins++;
 
-            if (
-              changeData.change > 0 &&
-              match.forfeited === false &&
-              typeof time === 'number' &&
-              time > 0
-            ) {
+            // Avg time only for non-forfeited wins
+            if (match.forfeited === false && typeof time === 'number' && time > 0) {
               totalTime += time;
               validMatchCount++;
             }
+          } else if (winnerUUID === null) {
+            // Draw → don't count towards win/loss
+          } else {
+            losses++;
+          }
+
+          // Net Elo still based on Elo change
+          if (changeData && typeof changeData.change === 'number') {
+            netElo += changeData.change;
           }
         });
 
@@ -102,14 +106,24 @@ export default function ProfilePage() {
           formattedAvgTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
         }
 
+        // ✅ Overlay animation for new match
         if (newMatchId && newMatchId !== latestMatchId && overlayRef.current) {
-          const lastChange = todayMatches[0].changes?.find(c => c.uuid === uuid)?.change || 0;
+          const match = todayMatches[0];
+          const winnerUUID = match.result?.uuid;
 
           overlayRef.current.style.display = 'flex';
-          overlayRef.current.style.backgroundColor =
-            lastChange > 0 ? 'limegreen' : lastChange < 0 ? 'red' : 'gray';
-          overlayRef.current.textContent =
-            lastChange > 0 ? 'Win!' : lastChange < 0 ? 'Loss :(' : 'Draw';
+
+          if (winnerUUID === uuid) {
+            overlayRef.current.style.backgroundColor = 'limegreen';
+            overlayRef.current.textContent = 'Win!';
+          } else if (winnerUUID === null) {
+            overlayRef.current.style.backgroundColor = 'gray';
+            overlayRef.current.textContent = 'Draw';
+          } else {
+            overlayRef.current.style.backgroundColor = 'red';
+            overlayRef.current.textContent = 'Loss :(';
+          }
+
           overlayRef.current.style.transform = 'translateY(0%)';
 
           setTimeout(() => {
